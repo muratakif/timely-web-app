@@ -71,25 +71,9 @@ module Events
       @user.events.where(gcalendar_id: events_to_be_synced.map(&:id)).update_all(parsed_events) unless parsed_events.empty?
     end
 
-    def parse_events(events)
-      events.map do |event|
-        parse_single_event(event)
-      end
-    end
-
-    # TODO: Implement a Parser class/module maybe?
     # TODO: Change starts_at, ends_at column types to datetime!
-    def parse_single_event(event)
-      {
-        gcalendar_id: event.id,
-        name:         event.summary,
-        description:  event.description,
-        starts_at:    event.start.date_time || e.start.date, # pass it to parse_datetime method
-        ends_at:      event.end.date_time || e.end.date, # pass it to parse_datetime method
-        recurring:    event.recurrence || false,
-        created_at:   Time.now,
-        updated_at:   Time.now
-      }
+    def parse_events(events)
+      Parsers::GoogleCalendar::EventParser.parse_events(events)
     end
   end
 end

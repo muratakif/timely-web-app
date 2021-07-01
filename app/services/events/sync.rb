@@ -21,6 +21,7 @@ module Events
 
     attr_reader :adapter, :fetched_events
 
+    # Can we split this into seperate workers? It can take too long!
     def read_pages
       loop do
         @fetched_events = adapter.fetch_events # TODO: pass from parameter as the last events' time

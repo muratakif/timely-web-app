@@ -6,15 +6,15 @@
 # TODO: Implement real sync logic, dig into the API find some useful hook or sth
 module Events
   class Sync < BaseService
-    def initialize(user_id, from = nil)
+    def initialize(user_id, from: nil)
       @user = User.find(user_id)
       @from = from
       @errors = []
     end
 
     def call
-      @adapter = ::Adapters::GoogleCalendar::ListEvents.new(@user.id, from: @from)
       read_pages
+      @user.update(last_checked_in: Time.current)
     end
 
     private
@@ -24,10 +24,14 @@ module Events
     # Can we split this into seperate workers? It can take too long!
     def read_pages
       loop do
-        @fetched_events = adapter.fetch_events # TODO: pass from parameter as the last events' time
+        @fetched_events = adapter.fetch_single_page # TODO: pass from parameter as the last events' time
         sync_events
         break unless adapter.has_next_page
       end
+    end
+
+    def adapter
+      @adapter ||= ::Adapters::GoogleCalendar::ListEvents.new(@user.id, from: @from)
     end
 
     def sync_events
@@ -46,7 +50,7 @@ module Events
     def create_new_events(new_event_ids)
       return if new_event_ids.empty?
 
-      new_events = fetched_events.select { |e| new_event_ids.include?(e.id) }
+      new_events = @fetched_events.select { |e| new_event_ids.include?(e.id) }
       events_to_be_created = parse_events(new_events)
       @user.events.insert_all(events_to_be_created) # add bulk_insert gem
     end

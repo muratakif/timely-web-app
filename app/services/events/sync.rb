@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # TODO: Add rescue statements and create error classes
-# TODO: Isolate/Seperate fetch API and upsert record logic
+# TODO: Isolate/Seperate fetch API and upsert record logic?
 # TODO: Configure base service, implement error handling, service objects etc
 # TODO: Implement real sync logic, dig into the API find some useful hook or sth
 module Events
@@ -9,7 +9,6 @@ module Events
     def initialize(user_id, from: nil)
       @user = User.find(user_id)
       @from = from
-      @errors = []
     end
 
     def call

@@ -1,0 +1,8 @@
+---
+:concurrency: 5
+production:
+  :concurrency: <%= ENV['SIDEKIQ_CONCURRENCY'] || 15 %>
+:queues:
+  - [calendar_sync, 2]
+  - [calendar_setup, 2]
+  - [default, 1]

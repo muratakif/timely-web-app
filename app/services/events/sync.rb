@@ -7,7 +7,7 @@
 module Events
   class Sync < BaseService
     def initialize(user_id, from: nil)
-      @user = User.find(user_id)
+      @user = User.includes(:events).find(user_id)
       @from = from
     end
 
@@ -58,7 +58,7 @@ module Events
       return if existing_event_ids.empty?
 
       old_raw_events = fetched_events.select { |e| existing_event_ids.include?(e.id) }
-      old_event_records = Event.where(gcalendar_id: existing_event_ids)
+      old_event_records = @user.events.where(gcalendar_id: existing_event_ids)
       events_to_be_synced = []
 
       old_event_records.each do |record|

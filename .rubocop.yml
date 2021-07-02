@@ -1,4 +1,6 @@
 AllCops:
+  NewCops: enable
+  
   Exclude:
     - 'Gemfile'
     - 'Guardfile'
@@ -6,10 +8,10 @@ AllCops:
     - 'config/**/*'
     - 'script/**/*'
     - 'bin/*'
-    - 'test/factories/*'
+    - 'spec/factories/*'
     - !ruby/regexp /old_and_unused\.rb$/
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 100
 
 Lint/MissingSuper:

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Events
   class Authenticate < BaseService
     def initialize(user_id, token)

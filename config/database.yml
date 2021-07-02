@@ -20,10 +20,10 @@ development:
 test:
   <<: *default
   host: localhost
-  port: 3306
-  username: user_timely
-  password: password
   database: timely_db_test
+  # port: 3306
+  # username: user_timely
+  # password: password
 
 production:
   <<: *default

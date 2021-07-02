@@ -39,8 +39,8 @@ module Events
       all_event_ids = fetched_events.map(&:id)
       # maybe memoize this?
       existing_event_ids = @user.events.select(:id)
-                                       .where(gcalendar_id: all_event_ids)
-                                       .pluck(:gcalendar_id)
+                                .where(gcalendar_id: all_event_ids)
+                                .pluck(:gcalendar_id)
       new_event_ids = all_event_ids - existing_event_ids
 
       update_old_events(existing_event_ids)
@@ -68,7 +68,9 @@ module Events
       end
 
       parsed_events = parse_events(events_to_be_synced)
-      @user.events.where(gcalendar_id: events_to_be_synced.map(&:id)).update_all(parsed_events) unless parsed_events.empty?
+      unless parsed_events.empty?
+        @user.events.where(gcalendar_id: events_to_be_synced.map(&:id)).update_all(parsed_events)
+      end
     end
 
     def parse_events(events)

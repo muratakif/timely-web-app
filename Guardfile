@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # first run rubocop and auto fix all the styling issues
 # and then run the tests
 

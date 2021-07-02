@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
+# Users controller
 class UsersController < ApplicationController
   def index
     outcome = CompaniesList.new(params[:filter]).call
-
     render json: { errors: outcome[:errors] }, status: 400 and return unless outcome[:success]
 
     render json: { data: outcome[:data], meta: {} }
@@ -11,7 +11,6 @@ class UsersController < ApplicationController
 
   def create
     user = User.create(user_params)
-
     render json: { data: user }
   end
 

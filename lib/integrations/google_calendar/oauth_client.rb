@@ -4,6 +4,7 @@ require 'googleauth/stores/file_token_store'
 
 module Integrations
   module GoogleCalendar
+    # OAuth client for Google Calendar API
     class OauthClient
       CONFIG_KEY = 'g_calendar'
       AUTH_URI = 'https://accounts.google.com/o/oauth2/oauth'
@@ -21,7 +22,7 @@ module Integrations
         @scope = scope
       end
 
-      def authorize
+      def authorize # rubocop:disable Metrics/MethodLength
         client_id = Google::Auth::ClientId.from_file CREDENTIALS_PATH
         token_store = Google::Auth::Stores::FileTokenStore.new file: TOKEN_PATH
         authorizer = Google::Auth::UserAuthorizer.new client_id, SCOPE, token_store
@@ -40,24 +41,26 @@ module Integrations
 
       private
 
+      def config
+        # Rails.application.secrets.integrations[CONFIG_KEY]
+      end
+
       # def connect
-      #   result = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request_params) }
+      #   result = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      #     http.request(request_params)
+      #   end
       #   parsed_response = JSON.parse(result.body)
       #   parsed_response['code']
       # end
 
-      def config
-        #   Rails.application.secrets.integrations[CONFIG_KEY]
-      end
-
-      def request_params
-        #   request = Net::HTTP::Get.new(uri)
-        #   request['client_id'] = @config['client_id']
-        #   request['client_secret'] = @config['client_secret']
-        #   request['redirect_uri'] = Rails.application.routes.url_helpers.oauth_authorization_url
-        #   request['scope'] = @scope || @config['scope']
-        #   request
-      end
+      # def request_params
+      #   request = Net::HTTP::Get.new(uri)
+      #   request['client_id'] = @config['client_id']
+      #   request['client_secret'] = @config['client_secret']
+      #   request['redirect_uri'] = Rails.application.routes.url_helpers.oauth_authorization_url
+      #   request['scope'] = @scope || @config['scope']
+      #   request
+      # end
     end
   end
 end

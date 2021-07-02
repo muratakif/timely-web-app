@@ -21,9 +21,6 @@ test:
   <<: *default
   host: localhost
   database: timely_db_test
-  # port: 3306
-  # username: user_timely
-  # password: password
 
 production:
   <<: *default

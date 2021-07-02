@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Events
+  # Service for authenticating users to Google Calendar API
   class Authenticate < BaseService
     def initialize(user_id, token)
       @user_id = user_id

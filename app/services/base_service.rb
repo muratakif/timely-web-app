@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Base service class
 class BaseService
   attr_reader :errors
 

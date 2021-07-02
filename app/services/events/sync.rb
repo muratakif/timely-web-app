@@ -5,6 +5,7 @@
 # TODO: Configure base service, implement error handling, service objects etc
 # TODO: Implement real sync logic, dig into the API find some useful hook or sth
 module Events
+  # Service for syncing a user's events
   class Sync < BaseService
     def initialize(user_id, from: nil)
       @user = User.includes(:events).find(user_id)
@@ -60,6 +61,15 @@ module Events
 
       old_raw_events = fetched_events.select { |e| existing_event_ids.include?(e.id) }
       old_event_records = @user.events.where(gcalendar_id: existing_event_ids)
+      events_to_be_synced = populate_events_to_be_synced(old_raw_events, old_event_records)
+
+      return if events_to_be_synced.empty?
+
+      parsed_events = parse_events(events_to_be_synced)
+      @user.events.where(gcalendar_id: events_to_be_synced.map(&:id)).update_all(parsed_events)
+    end
+
+    def populate_events_to_be_synced(old_raw_events, old_event_records)
       events_to_be_synced = []
 
       old_event_records.each do |record|
@@ -67,10 +77,7 @@ module Events
         events_to_be_synced << raw_event if record.updated_at < raw_event.updated
       end
 
-      parsed_events = parse_events(events_to_be_synced)
-      unless parsed_events.empty?
-        @user.events.where(gcalendar_id: events_to_be_synced.map(&:id)).update_all(parsed_events)
-      end
+      events_to_be_synced
     end
 
     def parse_events(events)

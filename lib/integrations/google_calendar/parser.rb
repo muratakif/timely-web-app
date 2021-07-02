@@ -2,6 +2,7 @@
 
 module Integrations
   module GoogleCalendar
+    # Parser module for Google Calendar API respones
     module Parser
       def self.parse_events(events)
         events.map do |event|

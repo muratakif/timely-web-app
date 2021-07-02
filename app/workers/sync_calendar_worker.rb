@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Worker for syncing a users events
 class SyncCalendarWorker
   include Sidekiq::Worker
   sidekiq_options queue: :calendar_setup, retry: 3

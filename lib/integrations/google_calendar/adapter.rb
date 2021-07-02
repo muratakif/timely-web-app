@@ -2,6 +2,7 @@
 
 module Integrations
   module GoogleCalendar
+    # Adapter class for using GoogleCalendar API
     class Adapter
       # CONFIG_KEY = 'g_calendar'
       # AUTH_URI = 'https://accounts.google.com/o/oauth2/oauth'

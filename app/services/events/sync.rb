@@ -18,19 +18,20 @@ module Events
 
     private
 
-    attr_reader :adapter, :fetched_events
+    attr_reader :fetched_events
 
     # Can we split this into seperate workers? It can take too long!
     def read_pages
       loop do
-        @fetched_events = adapter.fetch_single_page # TODO: pass from parameter as the last events' time
+        @fetched_events = adapter.fetch_single_page
         sync_events
         break unless adapter.has_next_page
       end
     end
 
     def adapter
-      @adapter ||= ::Adapters::GoogleCalendar::ListEvents.new(@user.id, from: @from)
+      # from option is obsolete if e.g. update_event method is called from the adapter.
+      @adapter ||= ::Integrations::GoogleCalendar::Adapter.new(@user.id, from: @from)
     end
 
     def sync_events
@@ -70,9 +71,8 @@ module Events
       @user.events.where(gcalendar_id: events_to_be_synced.map(&:id)).update_all(parsed_events) unless parsed_events.empty?
     end
 
-    # TODO: Change starts_at, ends_at column types to datetime!
     def parse_events(events)
-      Parsers::GoogleCalendar::EventParser.parse_events(events)
+      ::Integrations::GoogleCalendar::Parser.parse_events(events)
     end
   end
 end

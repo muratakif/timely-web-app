@@ -9,12 +9,14 @@ module Events
   class Sync < BaseService
     def initialize(user_id, from: nil)
       @user = User.includes(:events).find(user_id)
+      @integration = @user.integrations.find_by(name: 'google_calendar', status: 'active')
       @from = from
     end
 
     def call
       read_pages
       @user.update(last_checked_in: Time.current)
+      @integration.update(sync_token: adapter.sync_token) if adapter.sync_token
     end
 
     private
@@ -31,8 +33,11 @@ module Events
     end
 
     def adapter
-      # from option is obsolete if e.g. update_event method is called from the adapter.
-      @adapter ||= ::Integrations::GoogleCalendar::Adapter.new(@user.id, from: @from)
+      @adapter ||= ::Integrations::GoogleCalendar::Adapter.new(
+        @user.id,
+        sync_token: @integration&.sync_token,
+        from: @from
+      )
     end
 
     def sync_events
@@ -61,23 +66,12 @@ module Events
 
       old_raw_events = fetched_events.select { |e| existing_event_ids.include?(e.id) }
       old_event_records = @user.events.where(gcalendar_id: existing_event_ids)
-      events_to_be_synced = populate_events_to_be_synced(old_raw_events, old_event_records)
-
-      return if events_to_be_synced.empty?
-
-      parsed_events = parse_events(events_to_be_synced)
-      @user.events.where(gcalendar_id: events_to_be_synced.map(&:id)).update_all(parsed_events)
-    end
-
-    def populate_events_to_be_synced(old_raw_events, old_event_records)
-      events_to_be_synced = []
+      parsed_events = parse_events(old_raw_events)
 
       old_event_records.each do |record|
-        raw_event = old_raw_events.find(gcalendar_id: record.gcalendar_id).first
-        events_to_be_synced << raw_event if record.updated_at < raw_event.updated
+        parsed_event = parsed_events.find(gcalendar_id: record.gcalendar_id).first
+        record.update!(parsed_event)
       end
-
-      events_to_be_synced
     end
 
     def parse_events(events)

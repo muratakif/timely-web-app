@@ -12,9 +12,10 @@ module Integrations
       CALENDAR_ID = 'primary'
       DEFAULT_PAGE_SIZE = 100
 
-      attr_reader :has_next_page
+      attr_reader :has_next_page, :sync_token
 
       def initialize(user_id, options = {})
+        @sync_token = options[:sync_token]
         @has_next_page = true
         @filter = build_filter(options)
         setup_client(user_id)
@@ -33,6 +34,7 @@ module Integrations
 
       def fetch_single_page
         response = fetch_from_client
+        @sync_token = response.next_sync_token if response.next_sync_token
         @next_page_token = response.next_page_token
         @has_next_page = false if @next_page_token.nil?
         response.items
@@ -58,10 +60,14 @@ module Integrations
       def fetch_from_client
         client.list_events(CALENDAR_ID,
                            max_results: @filter[:page_size],
-                           time_min: @filter[:from].rfc3339,
                            single_events: true,
-                           order_by: 'startTime',
-                           page_token: @next_page_token)
+                           sync_token: @sync_token,
+                           page_token: @next_page_token,
+                           fields: requested_fields)
+      end
+
+      def requested_fields
+        'items(id,summary,description,start,end,recurrence,updated),next_sync_token, next_page_token'
       end
     end
   end

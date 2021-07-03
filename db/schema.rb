@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_07_02_142523) do
+ActiveRecord::Schema.define(version: 2021_07_02_145009) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -29,15 +29,8 @@ ActiveRecord::Schema.define(version: 2021_07_02_142523) do
     t.index ["user_id"], name: "index_events_on_user_id"
   end
 
-  create_table "integrations", force: :cascade do |t|
-    t.string "type", null: false
-    t.string "sync_token"
-    t.datetime "last_synced"
-    t.bigint "user_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["user_id"], name: "index_integrations_on_user_id"
-  end
+# Could not dump table "integrations" because of following StandardError
+#   Unknown type 'integration_status' for column 'status'
 
   create_table "tokens", force: :cascade do |t|
     t.string "content"

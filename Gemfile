@@ -24,6 +24,9 @@ gem 'jbuilder', '~> 2.7'
 # Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 
+# A scheduler process to replace cron. (http://github.com/tomykaira/clockwork)
+gem 'clockwork'
+
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '>= 1.4.4', require: false
 gem 'google-apis-calendar_v3'

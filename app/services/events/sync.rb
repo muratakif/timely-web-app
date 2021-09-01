@@ -3,7 +3,6 @@
 # TODO: Add rescue statements and create error classes
 # TODO: Isolate/Seperate fetch API and upsert record logic?
 # TODO: Configure base service, implement error handling, service objects etc
-# TODO: Implement real sync logic, dig into the API find some useful hook or sth
 module Events
   # Service for syncing a user's events
   class Sync < BaseService
@@ -15,7 +14,7 @@ module Events
 
     def call
       read_pages
-      @user.update(last_checked_in: Time.current)
+      @user.update(last_checked_in: Time.current) # update integration's last_checked_in instead
       @integration.update(sync_token: adapter.sync_token) if adapter.sync_token
     end
 
@@ -41,10 +40,9 @@ module Events
     end
 
     def sync_events
-      # what happens if an old event is updated? is next_page_token enough?
       all_event_ids = fetched_events.map(&:id)
       # maybe memoize this?
-      existing_event_ids = @user.events.select(:id)
+      existing_event_ids = @user.events.select(:gcalendar_id)
                                 .where(gcalendar_id: all_event_ids)
                                 .pluck(:gcalendar_id)
       new_event_ids = all_event_ids - existing_event_ids
@@ -54,24 +52,40 @@ module Events
     end
 
     def create_new_events(new_event_ids)
-      return if new_event_ids.empty?
+      # I chose not to create an event if it's status is "cancelled"
+      # As the API does not provide any information apart from google_calendar_id and status fields
+      # This issue occurs when an event is created and then deleted before the worker fetches it.
+      new_events = @fetched_events.select do |raw_event|
+        raw_event.id.in?(new_event_ids) && raw_event.status != 'cancelled'
+      end
+      
+      return if new_events.empty?
 
-      new_events = @fetched_events.select { |e| new_event_ids.include?(e.id) }
       events_to_be_created = parse_events(new_events)
       @user.events.insert_all(events_to_be_created) # add bulk_insert gem
     end
 
+    # TODO: Refactor here: Split update and delete logic
     def update_old_events(existing_event_ids)
       return if existing_event_ids.empty?
 
       old_raw_events = fetched_events.select { |e| existing_event_ids.include?(e.id) }
       old_event_records = @user.events.where(gcalendar_id: existing_event_ids)
-      parsed_events = parse_events(old_raw_events)
+
+      events_to_be_deleted = old_raw_events.select { |raw_event| raw_event.status == 'cancelled' }
+      delete_old_events(events_to_be_deleted.map(&:id))
+      
+      events_to_be_updated = old_raw_events - events_to_be_deleted
+      parsed_events = parse_events(events_to_be_updated)
 
       old_event_records.each do |record|
         parsed_event = parsed_events.find(gcalendar_id: record.gcalendar_id).first
-        record.update!(parsed_event)
+        record.update!(parsed_event.except(:gcalendar_id))
       end
+    end
+
+    def delete_old_events(to_be_deleted_ids)
+      @user.events.where(gcalendar_id: to_be_deleted_ids).delete_all
     end
 
     def parse_events(events)

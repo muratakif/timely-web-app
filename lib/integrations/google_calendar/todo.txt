@@ -1,0 +1,18 @@
+TODO:
+
+1. Create Calendar table
+2. add missing fields to event table (e.g. raw_event etc)
+3. change starts_at, ends_at columns type
+4. setup an integration create service apart from sync service
+5. add scopes table
+6. fix todos & refactor, optimize
+7. implement tests
+8. implement controllers & routes
+9. refactor oauth mechanism
+10. add ui
+11. implement own client
+12. final refacor
+13. split wip commit messeges to proper ones
+14. prepare docker file
+15. write proper readme
+16. write proper email and publish

@@ -13,7 +13,7 @@ module Integrations
       OOB_URI = 'http://localhost:8080'
       CREDENTIALS_PATH = 'credentials.json'
       TOKEN_PATH = 'token.yaml'
-      SCOPE = Google::Apis::CalendarV3::AUTH_CALENDAR_READONLY
+      SCOPE = Google::Apis::CalendarV3::AUTH_CALENDAR_EVENTS
 
       # TODO: How about having a Permission table to deal with scopes?
       def initialize(user_id, scope = nil)
@@ -37,6 +37,12 @@ module Integrations
           )
         end
         credentials
+      rescue StandardError => e
+        Rails.logger.info(e)
+      end
+
+      def refresh_credentials
+        
       end
 
       private

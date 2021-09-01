@@ -3,6 +3,8 @@
 module Events
   # Service for authenticating users to Google Calendar API
   class Authenticate < BaseService
+    APPLICATION_NAME = 'Timely Web client' # TODO: Move to env vars
+
     def initialize(user_id, token)
       @user_id = user_id
       @token = token
@@ -11,8 +13,8 @@ module Events
 
     def call
       validate!
+      setup_client
       authenticate_gcalendar
-      create_event
     end
 
     private
@@ -25,8 +27,10 @@ module Events
       # ....
     end
 
-    def create_event
-      # ....
+    def setup_client(user_id)
+      @client = Google::Apis::CalendarV3::CalendarService.new
+      @client.client_options.application_name = 'Timely Web client' # TODO: Move to env vars
+      @client.authorization = OauthClient.new(user_id).authorize
     end
   end
 end

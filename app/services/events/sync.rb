@@ -23,6 +23,10 @@ module Events
     attr_reader :fetched_events
 
     # Can we split this into seperate workers? It can take too long!
+    # Since it's already in a worker, and I fetch the events with pagination
+    # No need to split into smaller workers
+    # But it should pick up from where it's left in case of failure
+    # So, there may be a smarter check for last_checked_in and retry logic
     def read_pages
       loop do
         @fetched_events = adapter.fetch_single_page
